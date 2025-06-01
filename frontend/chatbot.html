@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureContract - Conversación con Contrax</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            color: #333;
+            background-color: #f7f7f7;
+            line-height: 1.3;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .chat-header {
+            background-color: #2b2b2b;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background-color: #d3ff36;
+            border-radius: 50%;
+            margin-right: 8px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-icon::before {
+            content: "▶";
+            color: #2b2b2b;
+            font-size: 10px;
+            margin-left: 2px;
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            background-color: white;
+            overflow: hidden;
+        }
+        
+        .chat-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 10px 0;
+            padding: 0 20px;
+        }
+        
+        .chat-messages {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+        }
+        
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .bot {
+            align-items: flex-start;
+        }
+        
+        .user {
+            justify-content: flex-end;
+        }
+        
+        .bot .message-content {
+            background-color: #f0f0f0;
+            color: #333;
+            border-radius: 0 10px 10px 10px;
+        }
+        
+        .user .message-content {
+            background-color: #2b2b2b;
+            color: white;
+            border-radius: 10px 0 10px 10px;
+        }
+        
+        .bot-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #d3ff36;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            flex-shrink: 0;
+            color: #2b2b2b;
+            font-weight: bold;
+        }
+        
+        .bot-avatar::before {
+            content: "C";
+            font-size: 16px;
+        }
+        
+        .input-container {
+            padding: 15px 20px;
+            display: flex;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .input-field {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        
+        .send-btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .audio-btn, .document-btn {
+            width: 40px;
+            height: 40px;
+            background-color: #f0f0f0;
+            color: #2b2b2b;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .audio-btn:hover, .document-btn:hover {
+            background-color: #d3ff36;
+        }
+        
+        .audio-icon, .document-icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .home-link {
+            color: #333;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        
+        .review-btn {
+            display: inline-block;
+            background-color: #2b2b2b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            padding: 8px 12px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            width: fit-content;
+        }
+        
+        .typing-animation {
+            display: flex;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background-color: #888;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: typingAnimation 1.2s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 100% {
+                opacity: 0.6;
+                transform: translateY(0);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-2px);
+            }
+        }
+        
+        .audio-message {
+            display: flex;
+            align-items: center;
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 10px;
+            width: fit-content;
+        }
+        
+        .audio-player {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #33a852;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .play-icon {
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #33a852;
+        }
+        
+        .audio-waveform {
+            width: 100px;
+            height: 20px;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjIwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPg0KICA8cGF0aCBkPSJNNSAxMCBMOSA1IEwxMyAxMyBMMTcgOCBMMjEgMTIgTDI1IDYgTDI5IDE1IEwzMyA5IEwzNyAxMSBMNDEgNyBMNDUgMTQgTDQ5IDQgTDUzIDEyIEw1NyA4IEw2MSAxNiBMNjUgNiBMNjkgMTEgTDczIDkgTDc3IDEzIEw4MSA1IEw4NSAxMSBMODkgNyBMOTMgMTAgTDk3IDE0IiBzdHJva2U9IndoaXRlIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiAvPg0KPC9zdmc+');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .audio-time {
+            font-size: 0.8rem;
+        }
+        
+        #userInput:focus {
+            border-color: #d3ff36;
+            box-shadow: 0 0 0 2px rgba(211, 255, 54, 0.2);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Estilos para la grabación de audio */
+        .recording-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+            display: none;
+        }
+        
+        .recording-animation {
+            width: 100px;
+            height: 100px;
+            background-color: #d3ff36;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            animation: pulseAnimation 1.5s infinite;
+        }
+        
+        .recording-waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .recording-wave-bar {
+            width: 4px;
+            height: 20px;
+            background-color: #d3ff36;
+            border-radius: 2px;
+            animation: waveAnimation 0.5s infinite alternate;
+        }
+        
+        @keyframes waveAnimation {
+            0% {
+                height: 5px;
+            }
+            100% {
+                height: 30px;
+            }
+        }
+        
+        .recording-wave-bar:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+        
+        .recording-wave-bar:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+        
+        .recording-wave-bar:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+        
+        .recording-wave-bar:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes pulseAnimation {
+            0% {
+                box-shadow: 0 0 0 0 rgba(211, 255, 54, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 20px rgba(211, 255, 54, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(211, 255, 54, 0);
+            }
+        }
+        
+        .recording-timer {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .recording-actions {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .recording-cancel, .recording-send {
+            padding: 12px 30px;
+            border-radius: 30px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .recording-cancel {
+            background-color: #ff3636;
+            color: white;
+        }
+        
+        .recording-send {
+            background-color: #d3ff36;
+            color: #2b2b2b;
+        }
+        
+        .recording-cancel:hover, .recording-send:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Estilos para el modal de documento */
+        .document-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .document-modal {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .document-modal h2 {
+            margin-bottom: 20px;
+            color: #2b2b2b;
+        }
+        
+        .document-input {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .document-drop-zone {
+            border: 2px dashed #ccc;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .document-drop-zone:hover {
+            border-color: #d3ff36;
+            background-color: #f9ffed;
+        }
+        
+        .document-drop-zone p {
+            margin-top: 10px;
+            color: #777;
+            font-size: 14px;
+        }
+        
+        .document-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .document-cancel, .document-send {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .document-cancel {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .document-send {
+            background-color: #2b2b2b;
+            color: white;
+        }
+        
+        .document-cancel:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .document-send:hover {
+            background-color: #1a1a1a;
+        }
+
+        /* Nuevo: Estilo para la pantalla de carga del contrato */
+        .contract-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            color: white;
+            display: none;
+        }
+        
+        .contract-loading-animation {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .contract-loading-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 5px solid rgba(211, 255, 54, 0.2);
+            border-top-color: #d3ff36;
+            animation: spinAnimation 1.5s infinite linear;
+        }
+        
+        .contract-loading-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: #d3ff36;
+        }
+        
+        .contract-loading-text {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #d3ff36;
+        }
+        
+        .contract-loading-subtext {
+            font-size: 16px;
+            max-width: 80%;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        @keyframes spinAnimation {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .recording-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .recording-cancel, .recording-send {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .input-container {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .input-field {
+                width: 100%;
+                order: 1;
+            }
+            
+            .action-btns {
+                order: 2;
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .send-btn {
+                order: 3;
+                width: 100%;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"></div>
+                SecureContract
+            </a>
+        </div>
+        
+        <h1 class="chat-title">Conversation between Freelancer and Contrax Bot</h1>
+        
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded dynamically -->
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="userInput" class="input-field" placeholder="Type your message...">
+            <div class="action-btns">
+                <button class="audio-btn" id="audioBtn">
+                    <svg class="audio-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 14C13.1046 14 14 13.1046 14 12V7C14 5.89543 13.1046 5 12 5C10.8954 5 10 5.89543 10 7V12C10 13.1046 10.8954 14 12 14Z" fill="#2b2b2b"/>
+                        <path d="M7 12C7 15.3137 9.68629 18 13 18M17 12C17 15.3137 14.3137 18 11 18" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 18V21M12 21H9M12 21H15" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="document-btn" id="documentBtn">
+                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 13H16" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 17H12" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <button class="send-btn" id="sendBtn">Send</button>
+        </div>
+    </div>
+    
+    <!-- Audio recording overlay -->
+    <div class="recording-overlay" id="recordingOverlay">
+        <div class="recording-animation">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 14C13.1046 14 14 13.1046 14 12V7C14 5.89543 13.1046 5 12 5C10.8954 5 10 5.89543 10 7V12C10 13.1046 10.8954 14 12 14Z" fill="#2b2b2b"/>
+                <path d="M7 12C7 15.3137 9.68629 18 13 18M17 12C17 15.3137 14.3137 18 11 18" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 18V21M12 21H9M12 21H15" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="recording-waveform">
+            <div class="recording-wave-bar"></div>
+            <div class="recording-wave-bar"></div>
+            <div class="recording-wave-bar"></div>
+            <div class="recording-wave-bar"></div>
+            <div class="recording-wave-bar"></div>
+        </div>
+        <div class="recording-timer" id="recordingTimer">00:00</div>
+        <div class="recording-actions">
+            <button class="recording-cancel" id="cancelRecording">Cancel</button>
+            <button class="recording-send" id="sendRecording">Send</button>
+        </div>
+    </div>
+    
+    <!-- Document upload overlay -->
+    <div class="document-overlay" id="documentOverlay">
+        <div class="document-modal">
+            <h2>Attach document</h2>
+            <div class="document-input">
+                <div class="document-drop-zone" id="dropZone">
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 12V18" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 15H15" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p>Click or drag a file here</p>
+                </div>
+            </div>
+            <div class="document-actions">
+                <button class="document-cancel" id="cancelDocument">Cancel</button>
+                <button class="document-send" id="sendDocument">Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New: Contract loading screen overlay -->
+    <div class="contract-loading-overlay" id="contractLoadingOverlay">
+        <div class="contract-loading-animation">
+            <div class="contract-loading-circle"></div>
+            <div class="contract-loading-icon">⚙️</div>
+        </div>
+        <div class="contract-loading-text">Creating contract with Blockchain + AI</div>
+        <div class="contract-loading-subtext">
+            We are generating a smart and secure contract based on the information provided. 
+            This process ensures transparency and security for your agreements.
+        </div>
+    </div>
+    
+    <script>
+const conversation = [
+    { role: 'bot', text: 'Hello! I\'m Contrax. I need your personal information: Name, Specialty, Tax ID, Address, Email, Phone.' },
+    { role: 'user', text: 'I\'m Sarai Alejandro, web designer. Tax ID 10456789012. Jr. Los Amautas - San Juan de Lurigancho. sarai.alejandro@gmail.com, 934003487.' },
+    { role: 'bot', text: 'Thank you Sarai. Now I need the client company information: Name, Tax ID, Address, Legal representative, Contact.' },
+    { role: 'user', text: 'TechSolutions SAC, Tax ID 20587456321. Av. Benavides 1580, Surco. Representative: Ana Torres, General Manager. Contact: marketing@techsolutions.pe, 998765432.' },
+    { role: 'bot', text: 'Perfect. Now tell me about the project: Description, Deliverables, Timeline, Intellectual property.' },
+    { role: 'user', text: '[SENDS AUDIO]', isAudio: true },
+    { role: 'bot', text: 'How much do you plan to charge and how do you prefer payments? I can recommend a structure if you wish.' },
+    { role: 'user', text: 'I plan to charge 25 soles per hour.' },
+    { role: 'bot', text: 'I recommend this structure: 30% at start, 40% upon design approval, 30% upon delivery. Does that sound good?' },
+    { role: 'user', text: 'Sounds good to me. I\'ll keep my rate but use that payment structure.' },
+    { role: 'bot', text: 'Ready! Your contract is prepared. Click to review.', hasButton: true }
+];
+
+// Referencias a elementos del DOM
+const chatMessages = document.getElementById('chatMessages');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const audioBtn = document.getElementById('audioBtn');
+const documentBtn = document.getElementById('documentBtn');
+const recordingOverlay = document.getElementById('recordingOverlay');
+const recordingTimer = document.getElementById('recordingTimer');
+const cancelRecording = document.getElementById('cancelRecording');
+const sendRecording = document.getElementById('sendRecording');
+const documentOverlay = document.getElementById('documentOverlay');
+const cancelDocument = document.getElementById('cancelDocument');
+const sendDocument = document.getElementById('sendDocument');
+const dropZone = document.getElementById('dropZone');
+const contractLoadingOverlay = document.getElementById('contractLoadingOverlay');
+
+// Variables de estado
+let currentMessageIndex = 0;
+let isWaitingForUserInput = false;
+let recordingInterval;
+let recordingSeconds = 0;
+
+/**
+ * Agrega un mensaje al chat
+ * @param {string} role - 'bot' o 'user'
+ * @param {string} text - El texto del mensaje
+ * @param {Object} options - Opciones adicionales (isAudio, isDocument, hasButton)
+ */
+function addMessage(role, text, options = {}) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    
+    let messageContent = '';
+    
+    if (role === 'bot') {
+        messageContent = `
+            <div class="bot-avatar"></div>
+            <div class="message-content">${text}</div>
+        `;
+    } else {
+        if (options.isAudio) {
+            messageContent = `
+                <div class="message-content">
+                    <div class="audio-message">
+                        <div class="audio-player">
+                            <div class="play-icon">▶</div>
+                            <div class="audio-waveform"></div>
+                            <div class="audio-time">0:28</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (options.isDocument) {
+            messageContent = `
+                <div class="message-content">
+                    <div class="document-message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 2V8H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        ${text}
+                    </div>
+                </div>
+            `;
+        } else {
+            messageContent = `<div class="message-content">${text}</div>`;
+        }
+    }
+    
+    messageDiv.innerHTML = messageContent;
+    chatMessages.appendChild(messageDiv);
+    
+    // Si hay un botón para revisar contrato
+    if (options.hasButton) {
+        const buttonDiv = document.createElement('div');
+        buttonDiv.className = 'message bot';
+        buttonDiv.innerHTML = `
+            <div class="bot-avatar"></div>
+            <div class="message-content">
+                <a href="#" class="review-btn">Revisar mi Contrato</a>
+            </div>
+        `;
+        chatMessages.appendChild(buttonDiv);
+    }
+    
+    // Scroll al final del chat
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+/**
+ * Muestra el indicador de escritura del bot
+ */
+function showTypingIndicator() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = `
+        <div class="bot-avatar"></div>
+        <div class="typing-animation">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    `;
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+/**
+ * Oculta el indicador de escritura del bot
+ */
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+/**
+ * Procesa el mensaje del usuario
+ */
+function processUserInput() {
+    if (isWaitingForUserInput) {
+        const userMessage = conversation[currentMessageIndex];
+        addMessage('user', userMessage.text, { isAudio: userMessage.isAudio });
+        
+        currentMessageIndex++;
+        
+        // Si hay más mensajes en la conversación
+        if (currentMessageIndex < conversation.length) {
+            isWaitingForUserInput = false;
+            
+            // Si el siguiente mensaje es del bot
+            if (conversation[currentMessageIndex].role === 'bot') {
+                showBotResponse();
+            } else {
+                isWaitingForUserInput = true;
+            }
+        }
+        
+        // Limpiar el campo de entrada
+        userInput.value = '';
+    }
+}
+
+/**
+ * Muestra la respuesta del bot
+ */
+function showBotResponse() {
+    showTypingIndicator();
+    
+    // Simular tiempo de escritura
+    setTimeout(() => {
+        hideTypingIndicator();
+        
+        const botMessage = conversation[currentMessageIndex];
+        addMessage('bot', botMessage.text, { hasButton: botMessage.hasButton });
+        
+        currentMessageIndex++;
+        
+        // Si hay más mensajes y el siguiente es del usuario
+        if (currentMessageIndex < conversation.length && conversation[currentMessageIndex].role === 'user') {
+            isWaitingForUserInput = true;
+        } else if (currentMessageIndex < conversation.length) {
+            // Si el siguiente es del bot, mostrar después de un tiempo
+            setTimeout(showBotResponse, 1000);
+        }
+    }, 1500);
+}
+
+/**
+ * Inicia la conversación
+ */
+function startConversation() {
+    // Mostrar el primer mensaje del bot
+    showBotResponse();
+}
+
+/**
+ * Inicia la grabación de audio
+ */
+function startRecording() {
+    recordingOverlay.style.display = 'flex';
+    recordingSeconds = 0;
+    updateRecordingTimer();
+    
+    // Iniciar temporizador
+    recordingInterval = setInterval(() => {
+        recordingSeconds++;
+        updateRecordingTimer();
+    }, 1000);
+}
+
+/**
+ * Detiene la grabación de audio
+ */
+function stopRecording() {
+    clearInterval(recordingInterval);
+    recordingOverlay.style.display = 'none';
+}
+
+/**
+ * Actualiza el temporizador de grabación
+ */
+function updateRecordingTimer() {
+    const minutes = Math.floor(recordingSeconds / 60);
+    const seconds = recordingSeconds % 60;
+    recordingTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Muestra el modal para subir documentos
+ */
+function showDocumentModal() {
+    documentOverlay.style.display = 'flex';
+}
+
+/**
+ * Oculta el modal para subir documentos
+ */
+function hideDocumentModal() {
+    documentOverlay.style.display = 'none';
+}
+
+/**
+ * Envía un mensaje de documento ficticio
+ */
+function sendDocumentMessage() {
+    if (isWaitingForUserInput) {
+        addMessage('user', 'He enviado un documento: contrato_modelo.pdf', { isDocument: true });
+        hideDocumentModal();
+        
+        // Solo avanzar si el siguiente mensaje esperado no es de audio
+        if (!conversation[currentMessageIndex].isAudio) {
+            currentMessageIndex++;
+            
+            // Si hay más mensajes en la conversación
+            if (currentMessageIndex < conversation.length) {
+                isWaitingForUserInput = false;
+                
+                // Si el siguiente mensaje es del bot
+                if (conversation[currentMessageIndex].role === 'bot') {
+                    showBotResponse();
+                } else {
+                    isWaitingForUserInput = true;
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Muestra la pantalla de carga del contrato
+ */
+function showContractLoading() {
+    contractLoadingOverlay.style.display = 'flex';
+    
+    // Simular tiempo de carga (3 segundos)
+    setTimeout(() => {
+        hideContractLoading();
+        redirectToContract();
+    }, 3000);
+}
+
+/**
+ * Oculta la pantalla de carga del contrato
+ */
+function hideContractLoading() {
+    contractLoadingOverlay.style.display = 'none';
+}
+
+/**
+ * Redirige al contrato
+ */
+function redirectToContract() {
+    window.location.href = 'contrato-freelance.html';
+}
+
+// Event listeners
+sendBtn.addEventListener('click', processUserInput);
+
+userInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        processUserInput();
+    }
+});
+
+// Añadir evento de clic al botón de revisar contrato
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('review-btn')) {
+        e.preventDefault();
+        showContractLoading(); // Mostrar pantalla de carga antes de redirigir
+    }
+});
+
+audioBtn.addEventListener('click', function() {
+    if (isWaitingForUserInput) {
+        if (conversation[currentMessageIndex].isAudio) {
+            startRecording();
+        }
+    }
+});
+
+cancelRecording.addEventListener('click', function() {
+    stopRecording();
+});
+
+sendRecording.addEventListener('click', function() {
+    stopRecording();
+    processUserInput();
+});
+
+documentBtn.addEventListener('click', function() {
+    showDocumentModal();
+});
+
+cancelDocument.addEventListener('click', function() {
+    hideDocumentModal();
+});
+
+sendDocument.addEventListener('click', function() {
+    sendDocumentMessage();
+});
+
+dropZone.addEventListener('click', function() {
+    // Simular selección de archivo
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.click();
+    
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) {
+            dropZone.innerHTML = `
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 2V8H20" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p>${fileInput.files[0].name}</p>
+            `;
+        }
+    });
+});
+
+// Arrastrar y soltar archivos
+dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropZone.style.borderColor = '#d3ff36';
+    dropZone.style.backgroundColor = '#f9ffed';
+});
+
+dropZone.addEventListener('dragleave', function() {
+    dropZone.style.borderColor = '#ccc';
+    dropZone.style.backgroundColor = 'white';
+});
+
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.style.borderColor = '#ccc';
+    dropZone.style.backgroundColor = 'white';
+    
+    if (e.dataTransfer.files.length > 0) {
+        dropZone.innerHTML = `
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 2V8H20" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p>${e.dataTransfer.files[0].name}</p>
+        `;
+    }
+});
+
+// Iniciar la conversación cuando la página se carga
+window.addEventListener('load', startConversation);
+    </script>
+</body>
+</html>

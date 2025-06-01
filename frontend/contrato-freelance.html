@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelance Contract - SecureContract</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            color: #333;
+            background-color: #f7f7f7;
+            line-height: 1.3;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background-color: #2b2b2b;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background-color: #d3ff36;
+            border-radius: 50%;
+            margin-right: 8px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-icon::before {
+            content: "▶";
+            color: #2b2b2b;
+            font-size: 10px;
+            margin-left: 2px;
+        }
+        
+        .container {
+            display: flex;
+            height: calc(100vh - 54px);
+            width: 100%;
+        }
+        
+        .column {
+            height: 100%;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .chat-column {
+            width: 25%;
+            background-color: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .contract-column {
+            width: 50%;
+            background-color: white;
+        }
+        
+        .info-column {
+            width: 25%;
+            background-color: #f0f0f0;
+            border-left: 1px solid #e0e0e0;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .input-container {
+            padding: 15px;
+            display: flex;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .input-field {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 50px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        
+        .send-btn {
+            background-color: #2b2b2b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        
+        .message-content {
+            max-width: 80%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .bot {
+            align-items: flex-start;
+        }
+        
+        .user {
+            justify-content: flex-end;
+        }
+        
+        .bot .message-content {
+            background-color: #f0f0f0;
+            color: #333;
+            border-radius: 0 10px 10px 10px;
+        }
+        
+        .user .message-content {
+            background-color: #2b2b2b;
+            color: white;
+            border-radius: 10px 0 10px 10px;
+        }
+        
+        .bot-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #d3ff36;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            flex-shrink: 0;
+            color: #2b2b2b;
+            font-weight: bold;
+        }
+        
+        .bot-avatar::before {
+            content: "C";
+            font-size: 16px;
+        }
+        
+        .contract-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .contract-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-decoration: underline;
+        }
+        
+        .contract-section {
+            margin-bottom: 20px;
+        }
+        
+        .contract-section h2 {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .contract-field {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .contract-space {
+            border-bottom: 1px solid #ccc;
+            height: 24px;
+            margin: 5px 0;
+        }
+        
+        .info-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-section h2 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .info-field {
+            margin-bottom: 10px;
+        }
+        
+        .info-field label {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .info-field span {
+            font-weight: 500;
+        }
+        
+        .info-field input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .download-btn {
+            background-color: #2b2b2b;
+            color: white;
+        }
+        
+        .send-contract-btn {
+            background-color: #d3ff36;
+            color: #2b2b2b;
+        }
+        
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Nuevo Estilo para Firma Digital */
+        .sign-btn {
+            background-color: #2b2b2b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            display: inline-block;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        
+        .sign-btn:hover {
+            background-color: #444;
+            transform: translateY(-2px);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .close-modal:hover {
+            color: #000;
+        }
+        
+        .modal-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .modal-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+            background-color: #f0f0f0;
+        }
+        
+        .modal-tab.active {
+            background-color: #2b2b2b;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 0 0 5px 5px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Canvas Signature */
+        #signatureCanvas {
+            border: 1px solid #ddd;
+            background-color: white;
+            width: 100%;
+            height: 200px;
+            margin-bottom: 15px;
+        }
+        
+        .signature-tools {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .signature-tool-btn {
+            padding: 8px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .signature-tool-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* File Upload */
+        .upload-container {
+            padding: 20px;
+            border: 2px dashed #ddd;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+        
+        .upload-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2b2b2b;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .upload-btn:hover {
+            background-color: #444;
+        }
+        
+        .preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        /* Camera Capture */
+        #cameraContainer {
+            width: 100%;
+            height: 300px;
+            background-color: #000;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #cameraStream {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        #capturedImage {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            display: none;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+        }
+        
+        .camera-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .camera-btn {
+            padding: 8px 15px;
+            background-color: #2b2b2b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .camera-btn:hover {
+            background-color: #444;
+        }
+        
+        .dni-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            height: 60%;
+            border: 2px dashed white;
+            border-radius: 10px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .dni-text {
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .save-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #d3ff36;
+            color: #2b2b2b;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .save-btn:hover {
+            background-color: #c4e92e;
+        }
+        
+        .signed-signature {
+            max-width: 150px;
+            max-height: 60px;
+            margin-top: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            
+            .column {
+                width: 100% !important;
+                height: auto;
+                min-height: 500px;
+            }
+            
+            .chat-column, .contract-column {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <a href="index.html" class="logo">
+            <div class="logo-icon"></div>
+            SecureContract
+        </a>
+        <div>Freelance Contract</div>
+    </div>
+    
+    <div class="container">
+        <!-- Column 1: Chatbot -->
+        <div class="column chat-column">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="bot-avatar"></div>
+                    <div class="message-content">We're reviewing your contract. How can I help you modify it?</div>
+                </div>
+                <div class="message user">
+                    <div class="message-content">I need to change the contract duration to 3 months</div>
+                </div>
+                <div class="message bot">
+                    <div class="bot-avatar"></div>
+                    <div class="message-content">I've updated the contract duration to 3 months. Do you need any other changes?</div>
+                </div>
+            </div>
+            <div class="input-container">
+                <input type="text" class="input-field" placeholder="Type your message...">
+                <button class="send-btn">Send</button>
+            </div>
+        </div>
+        
+        <!-- Column 2: Contract -->
+        <div class="column contract-column">
+            <div class="contract-container">
+                <div class="contract-title">Freelance Contract Template</div>
+                
+                <div class="contract-section">
+                    <p>In Lima, on <span class="date-field">May 18, 2025</span></p>
+                    
+                    <h2>PARTIES:</h2>
+                    
+                    <p>On one part, MR. / MS. <span class="party1-name">Sarai Esther Alejandro Casas</span>, of legal age, resident of <span class="party1-address">Miraflores, Lima</span>, bearer of I.D. number <span class="party1-id">72534524</span>.</p>
+                    
+                    <p>And on the other part, MR. / MS. <span class="party2-name">Ricardo Mendoza Velásquez</span> <i>(entrepreneur)</i>, of legal age, resident of <span class="party2-address">San Isidro, Lima</span>, bearer of I.D. number <span class="party2-id">40789523</span>.</p>
+                    
+                    <p>MR. / MS. <span class="party1-name">Sarai Esther Alejandro Casas</span> acts in their own name and right.</p>
+                    
+                    <p>MR. / MS. <span class="party2-name">Ricardo Mendoza Velásquez</span> <i>(entrepreneur)</i>, acts in the name and representation of the commercial entity <span class="company-name">Innova Tech Peru S.A.C.</span>, with address at <span class="company-address">Av. Javier Prado Este 2875, San Borja, Lima</span> and Tax I.D. <span class="company-ruc">20603987451</span>, in their capacity as <span class="company-position">General Manager</span>.</p>
+                    
+                    <p>Both parties in the representation they hold mutually recognize sufficient legal capacity to bind themselves through this document and, to such effect</p>
+                </div>
+                
+                <div class="contract-section">
+                    <h2>RECITALS:</h2>
+                    
+                    <p>I</p>
+                    
+                    <p>That MR. / MS. <span class="party1-name">Sarai Esther Alejandro Casas</span>, hereinafter "THE CONTRACTOR", has the status of <span class="profession">Graphic Designer and Web Developer</span> and as such performs on their own account work <span class="work-type">in graphic design, web development and UX/UI consulting</span>.</p>
+                    
+                    <p>II</p>
+                    
+                    <p>That the commercial entity <span class="company-name">Innova Tech Peru S.A.C.</span>, hereinafter "THE COMPANY", is engaged in the activity of <span class="company-activity">software development and technological solutions</span> and is interested in contracting THE CONTRACTOR's professional services for <span class="service-purpose">the redesign of their corporate website and the creation of a mobile application</span>.</p>
+                    
+                    <p>III</p>
+                    
+                    <p>That in accordance with the preceding recitals, both parties have agreed to enter into a service provision contract, under a work contract regime, according to the following:</p>
+                </div>
+                
+                <div class="contract-section">
+                    <h2>CLAUSES:</h2>
+                    
+                    <p><strong>FIRST - OBJECT.</strong> THE CONTRACTOR undertakes to perform for THE COMPANY, in exchange for a certain price, the following work: <span class="service-description">Complete redesign of the corporate website following modern design standards, implementation of a content management system, mobile device optimization, and the development of a mobile application compatible with iOS and Android that allows clients to access the company's services</span>.</p>
+                    
+                    <p><strong>SECOND - PRICE.</strong> The agreed price for the performance of the work is <span class="service-price">S/25,000.00 (Twenty-five thousand soles)</span>, which THE COMPANY will pay to THE CONTRACTOR according to the following payment schedule:</p>
+                    <ul>
+                        <li>30% upon contract signing: <span class="payment1">S/7,500.00</span></li>
+                        <li>40% upon design approval: <span class="payment2">S/10,000.00</span></li>
+                        <li>30% upon complete project delivery: <span class="payment3">S/7,500.00</span></li>
+                    </ul>
+                    <p>All these amounts will be paid upon presentation by THE CONTRACTOR of the corresponding invoice, in accordance with Income Tax and General Sales Tax (IGV) regulations.</p>
+                    
+                    <p><strong>THIRD - DURATION.</strong> The work execution period will be <span class="contract-duration">3 months</span>, counted from the signing of this contract, and must be delivered before <span class="delivery-date">August 18, 2025</span>.</p>
+                    
+                    <p><strong>FOURTH - INDEPENDENT CHARACTER.</strong> THE CONTRACTOR will perform the work with their own material and technical means. The parties expressly state that the service will be provided by THE CONTRACTOR with independence inherent to their professional activity, on their own account and without dependency relationship with THE COMPANY, within the framework of Legislative Decree No. 728 - Labor Productivity and Competitiveness Law and the TUO of D.L. No. 728.</p>
+                    
+                    <p><strong>FIFTH - INTELLECTUAL PROPERTY.</strong> All intellectual property rights over the work performed under this contract will belong to THE COMPANY, in accordance with Legislative Decree No. 822 - Copyright Law, and complementary regulations. THE CONTRACTOR expressly authorizes THE COMPANY to exercise exploitation rights over such work.</p>
+                    
+                    <p><strong>SIXTH - CONFIDENTIALITY.</strong> THE CONTRACTOR commits to maintain confidentiality regarding all information received from THE COMPANY or accessed during service execution, and cannot use it for purposes other than those provided in this contract. This obligation will subsist even after the contractual relationship ends, in accordance with Law No. 29733 - Personal Data Protection Law.</p>
+                    
+                    <p><strong>SEVENTH - TERMINATION.</strong> This contract may be terminated for the following causes:</p>
+                    <ul>
+                        <li>For breach by either party of the obligations established in this contract.</li>
+                        <li>By agreement between the parties.</li>
+                        <li>For supervening impossibility to execute the contract.</li>
+                    </ul>
+                    <p>In case of termination, pending payment amounts will be settled for the portion of work already completed.</p>
+                    
+                    <p><strong>EIGHTH - JURISDICTION.</strong> The parties, with express waiver of any other jurisdiction that may correspond to them, expressly submit to the competence of the Courts and Tribunals of Lima, as provided in the Peruvian Civil Procedure Code, for the resolution of any litigious matter that may arise from this contract.</p>
+                    
+                    <p>And in proof of conformity and acceptance, both parties sign this document, in duplicate and for a single purpose, at the place and date indicated in the heading.</p>
+                </div>
+                
+                <div class="contract-section">
+                    <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+                        <div style="text-align: center; width: 45%;">
+                            <div class="contract-space" id="collaboratorSignature"></div>
+                            <p>THE CONTRACTOR</p>
+                            <button id="openSignModal" class="sign-btn">Sign Digitally</button>
+                        </div>
+                        <div style="text-align: center; width: 45%;">
+                            <div class="contract-space"></div>
+                            <p>THE COMPANY</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Column 3: Information and buttons -->
+        <div class="column info-column">
+            <div class="info-section">
+                <h2>Freelancer Info</h2>
+                <div class="info-field">
+                    <label>Name:</label>
+                    <span>Sarai Esther Alejandro Casas</span>
+                </div>
+                <div class="info-field">
+                    <label>ID:</label>
+                    <span>72534524</span>
+                </div>
+                <div class="info-field">
+                    <label>Profession:</label>
+                    <span>Graphic Designer and Web Developer</span>
+                </div>
+                <div class="info-field">
+                    <label>Address:</label>
+                    <span>Miraflores, Lima</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h2>Client Info</h2>
+                <div class="info-field">
+                    <label>Name:</label>
+                    <span>Ricardo Mendoza Velásquez</span>
+                </div>
+                <div class="info-field">
+                    <label>ID:</label>
+                    <span>40789523</span>
+                </div>
+                <div class="info-field">
+                    <label>Company:</label>
+                    <span>Innova Tech Peru S.A.C.</span>
+                </div>
+                <div class="info-field">
+                    <label>Tax ID:</label>
+                    <span>20603987451</span>
+                </div>
+                <div class="info-field">
+                    <label>Email:</label>
+                    <span>rmendoza@innovatechperu.com.pe</span>
+                </div>
+                <div class="info-field">
+                    <label>Address:</label>
+                    <span>Av. Javier Prado Este 2875, San Borja, Lima</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h2>Project Details</h2>
+                <div class="info-field">
+                    <label>Type of work:</label>
+                    <span>Web redesign and app development</span>
+                </div>
+                <div class="info-field">
+                    <label>Duration:</label>
+                    <span>3 months</span>
+                </div>
+                <div class="info-field">
+                    <label>Amount:</label>
+                    <span>S/25,000.00</span>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="action-btn download-btn">Download Contract</button>
+                <button class="action-btn send-contract-btn">Send Contract</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para Firma Digital -->
+    <div id="signatureModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Digital Signature and Verification</h2>
+            
+            <div class="modal-tabs">
+                <div class="modal-tab active" data-tab="signature">Signature</div>
+                <div class="modal-tab" data-tab="photo">Photo</div>
+                <div class="modal-tab" data-tab="camera">Camera with ID</div>
+            </div>
+            
+            <!-- Signature Tab -->
+            <div id="signatureTab" class="tab-content active">
+                <h3>Draw your signature</h3>
+                <canvas id="signatureCanvas"></canvas>
+                <div class="signature-tools">
+                    <button id="clearSignature" class="signature-tool-btn">Clear</button>
+                    <button id="saveSignature" class="signature-tool-btn">Apply Signature</button>
+                </div>
+            </div>
+            
+            <!-- Photo Tab -->
+            <!-- Photo Tab - Modified with camera -->
+<div id="photoTab" class="tab-content">
+    <h3>Upload your photo or take a photo</h3>
+    <div class="upload-container">
+        <div class="upload-icon">📷</div>
+        <p>Drag and drop an image or click the button to select</p>
+        <input type="file" id="photoUpload" class="upload-input" accept="image/*">
+        <label for="photoUpload" class="upload-btn">Select Photo</label>
+    </div>
+    
+    <!-- Add camera functionality in the photo tab -->
+    <div style="margin-top: 20px; text-align: center;">
+        <h4>Or take a photo with your camera</h4>
+        <div id="photoCameraContainer" style="width: 100%; height: 240px; background-color: #000; margin: 15px 0; position: relative; overflow: hidden; display: none;">
+            <video id="photoCameraStream" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+        </div>
+        <div class="camera-controls">
+            <button id="startPhotoCamera" class="camera-btn">Start Camera</button>
+            <button id="capturePhotoFromCamera" class="camera-btn" disabled>Take Photo</button>
+        </div>
+    </div>
+    
+    <div class="preview-container">
+        <h4>Preview:</h4>
+        <img id="photoPreview" class="preview-image" src="#" alt="Photo preview">
+    </div>
+</div>
+            
+            <!-- Camera with ID Tab -->
+            <div id="cameraTab" class="tab-content">
+                <h3>Take a photo with your ID</h3>
+                <div id="cameraContainer">
+                    <video id="cameraStream" autoplay playsinline></video>
+                    <div class="dni-overlay">
+                        <span class="dni-text">Place your ID here</span>
+                    </div>
+                </div>
+                <div class="camera-controls">
+                    <button id="startCamera" class="camera-btn">Start Camera</button>
+                    <button id="capturePhoto" class="camera-btn" disabled>Take Photo</button>
+                </div>
+                <img id="capturedImage" src="#" alt="Captured photo">
+            </div>
+            
+            <button id="saveModalData" class="save-btn">Save and Continue</button>
+        </div>
+    </div>
+    
+    <script>
+        // Script para la funcionalidad del chat
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const inputField = document.querySelector('.input-field');
+            const sendBtn = document.querySelector('.send-btn');
+            const downloadBtn = document.querySelector('.download-btn');
+            const sendContractBtn = document.querySelector('.send-contract-btn');
+            
+            // Función para añadir mensaje al chat
+            function addMessage(role, text) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${role}`;
+                
+                if (role === 'bot') {
+                    messageDiv.innerHTML = `
+                        <div class="bot-avatar"></div>
+                        <div class="message-content">${text}</div>
+                    `;
+                } else {
+                    messageDiv.innerHTML = `<div class="message-content">${text}</div>`;
+                }
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Event listener para enviar mensaje
+            sendBtn.addEventListener('click', function() {
+                const text = inputField.value.trim();
+                if (text) {
+                    addMessage('user', text);
+                    inputField.value = '';
+                    
+                    // Simular respuesta del bot después de un tiempo
+                    setTimeout(function() {
+                        let response;
+                        
+                        if (text.toLowerCase().includes('price') || text.toLowerCase().includes('cost') || text.toLowerCase().includes('rate') || text.toLowerCase().includes('fee')) {
+                            response = "I have updated the price according to your instructions. Is there anything else you need to modify?";
+                        } else if (text.toLowerCase().includes('deadline') || text.toLowerCase().includes('duration') || text.toLowerCase().includes('time') || text.toLowerCase().includes('timeframe')) {
+                            response = "The contract deadline has been modified. Any other changes you wish to make?";
+                        } else if (text.toLowerCase().includes('property') || text.toLowerCase().includes('rights') || text.toLowerCase().includes('intellectual') || text.toLowerCase().includes('ownership')) {
+                            response = "The intellectual property clause has been updated. Do you need any other modifications?";
+                        } else {
+                            response = "I have noted your request. Is there anything else specific you would like to change in the contract?";
+                        }
+                        
+                        addMessage('bot', response);
+                    }, 1000);
+                }
+            });
+            
+            inputField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendBtn.click();
+                }
+            });
+            
+            // Evento para descargar contrato
+            downloadBtn.addEventListener('click', function() {
+                alert('Descargando contrato...');
+                // Aquí iría la lógica para descargar el PDF
+            });
+            
+            // Evento para enviar contrato
+            // Evento para enviar contrato
+sendContractBtn.addEventListener('click', function() {
+    // Verificar si el contrato ha sido firmado
+    const collaboratorSignature = document.getElementById('collaboratorSignature');
+    if (!collaboratorSignature.querySelector('.signed-signature')) {
+        alert('Please sign the contract before sending it.');
+
+        return;
+    }
+    
+    // Mostrar un mensaje de carga (si tienes la función addMessage disponible)
+    if (typeof addMessage === 'function') {
+        addMessage('bot', 'Sending Contract...');
+    }
+    
+    // Simular un breve tiempo de carga antes de mostrar confirmación
+    setTimeout(function() {
+        alert('Contract sent successfully!');
+        // Aquí iría la lógica para enviar el contrato por correo
+    }, 1500);
+});
+
+            // Modal de firma digital
+            const modal = document.getElementById('signatureModal');
+            const openModalBtn = document.getElementById('openSignModal');
+            const closeModal = document.querySelector('.close-modal');
+            const tabs = document.querySelectorAll('.modal-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const saveModalBtn = document.getElementById('saveModalData');
+            
+            // Abrir modal
+            openModalBtn.addEventListener('click', function() {
+                modal.style.display = 'block';
+                initSignatureCanvas(); // Inicializar canvas de firma
+            });
+            
+            // Cerrar modal
+            // Cerrar modal
+closeModal.addEventListener('click', function() {
+    modal.style.display = 'none';
+    stopCamera(); // Detener cámara si está activa
+    stopPhotoCamera(); // Detener cámara de foto si está activa
+});
+
+// Cerrar modal al hacer clic fuera del contenido
+window.addEventListener('click', function(event) {
+    if (event.target === modal) {
+        modal.style.display = 'none';
+        stopCamera(); // Detener cámara si está activa
+        stopPhotoCamera(); // Detener cámara de foto si está activa
+    }
+});
+            
+            // Cambio de pestañas
+            // Cambio de pestañas
+tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-tab');
+        
+        // Detener todas las cámaras activas al cambiar pestaña
+        stopCamera();
+        stopPhotoCamera();
+        
+        // Desactivar todas las pestañas y contenidos
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        // Activar la pestaña seleccionada
+        this.classList.add('active');
+        document.getElementById(tabName + 'Tab').classList.add('active');
+    });
+});tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Desactivar todas las pestañas y contenidos
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Activar la pestaña seleccionada
+                    this.classList.add('active');
+                    document.getElementById(tabName + 'Tab').classList.add('active');
+                    
+                    // Si se selecciona la pestaña de cámara
+                    if (tabName === 'camera') {
+                        // No iniciar automáticamente para evitar problemas de permisos
+                    }
+                });
+            });
+            
+            // ===== FUNCIONALIDAD DE FIRMA =====
+            let canvas, ctx, isDrawing = false;
+            let lastX = 0, lastY = 0;
+            
+            function initSignatureCanvas() {
+                canvas = document.getElementById('signatureCanvas');
+                ctx = canvas.getContext('2d');
+                
+                // Ajustar tamaño del canvas
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                
+                // Limpiar canvas
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'black';
+                
+                // Event listeners para dibujar
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('touchstart', startDrawingTouch);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('touchmove', drawTouch);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('touchend', stopDrawing);
+                canvas.addEventListener('mouseout', stopDrawing);
+            }
+            
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+            
+            function startDrawingTouch(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+            }
+            
+            function drawTouch(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                ctx.stroke();
+                [lastX, lastY] = [touch.clientX - rect.left, touch.clientY - rect.top];
+            }
+            
+            function stopDrawing() {
+                isDrawing = false;
+            }
+            
+            // Botón para limpiar firma
+            document.getElementById('clearSignature').addEventListener('click', function() {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            });
+            
+            // Botón para guardar firma
+            document.getElementById('saveSignature').addEventListener('click', function() {
+                const signatureImage = canvas.toDataURL('image/png');
+                
+                // Guardar la firma para usarla al cerrar el modal
+                sessionStorage.setItem('signatureImage', signatureImage);
+                
+                // Mostrar confirmación
+                alert('Firma guardada correctamente. Haz clic en "Guardar y Continuar" para aplicarla al contrato.');
+            });
+            
+            // ===== FUNCIONALIDAD DE SUBIDA DE FOTOS =====
+            // ===== FUNCIONALIDAD DE SUBIDA DE FOTOS Y CÁMARA EN PESTAÑA FOTO =====
+const photoUpload = document.getElementById('photoUpload');
+const photoPreview = document.getElementById('photoPreview');
+const photoCameraContainer = document.getElementById('photoCameraContainer');
+const photoCameraStream = document.getElementById('photoCameraStream');
+const startPhotoCameraBtn = document.getElementById('startPhotoCamera');
+const capturePhotoFromCameraBtn = document.getElementById('capturePhotoFromCamera');
+
+// Subida de archivos de imagen
+photoUpload.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type.match('image.*')) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            photoPreview.src = e.target.result;
+            photoPreview.style.display = 'block';
+            sessionStorage.setItem('userPhotoImage', e.target.result);
+        };
+        
+        reader.readAsDataURL(file);
+    }
+});
+
+// Funcionalidad de cámara en pestaña de Foto
+let photoStream = null;
+
+startPhotoCameraBtn.addEventListener('click', function() {
+    startPhotoCamera();
+});
+
+async function startPhotoCamera() {
+    try {
+        photoStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: 1280, height: 720 }, 
+            audio: false 
+        });
+        photoCameraStream.srcObject = photoStream;
+        photoCameraContainer.style.display = 'block';
+        startPhotoCameraBtn.disabled = true;
+        capturePhotoFromCameraBtn.disabled = false;
+    } catch (err) {
+        console.error('Error al acceder a la cámara: ', err);
+        alert('No se pudo acceder a la cámara. Por favor verifica los permisos.');
+    }
+}
+
+function stopPhotoCamera() {
+    if (photoStream) {
+        photoStream.getTracks().forEach(track => track.stop());
+        photoStream = null;
+        startPhotoCameraBtn.disabled = false;
+        capturePhotoFromCameraBtn.disabled = true;
+        photoCameraContainer.style.display = 'none';
+    }
+}
+
+capturePhotoFromCameraBtn.addEventListener('click', function() {
+    // Crear un canvas para capturar la imagen
+    const canvas = document.createElement('canvas');
+    canvas.width = photoCameraStream.videoWidth;
+    canvas.height = photoCameraStream.videoHeight;
+    const ctx = canvas.getContext('2d');
+    
+    // Dibujar la imagen del video en el canvas
+    ctx.drawImage(photoCameraStream, 0, 0, canvas.width, canvas.height);
+    
+    // Convertir a imagen
+    const imageData = canvas.toDataURL('image/png');
+    photoPreview.src = imageData;
+    photoPreview.style.display = 'block';
+    
+    // Guardar la imagen
+    sessionStorage.setItem('userPhotoImage', imageData);
+    
+    // Detener la cámara
+    stopPhotoCamera();
+});
+            
+            // ===== FUNCIONALIDAD DE CÁMARA =====
+            let stream = null;
+            const cameraStream = document.getElementById('cameraStream');
+            const capturedImage = document.getElementById('capturedImage');
+            const startCameraBtn = document.getElementById('startCamera');
+            const capturePhotoBtn = document.getElementById('capturePhoto');
+            
+            startCameraBtn.addEventListener('click', function() {
+                startCamera();
+            });
+            
+            async function startCamera() {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { width: 1280, height: 720 }, 
+                        audio: false 
+                    });
+                    cameraStream.srcObject = stream;
+                    startCameraBtn.disabled = true;
+                    capturePhotoBtn.disabled = false;
+                } catch (err) {
+                    console.error('Error al acceder a la cámara: ', err);
+                    alert('No se pudo acceder a la cámara. Por favor verifica los permisos.');
+                }
+            }
+            // Evento para enviar contrato
+document.querySelector('.send-contract-btn').addEventListener('click', function() {
+    // Verificar si el contrato ha sido firmado
+    const collaboratorSignature = document.getElementById('collaboratorSignature');
+    if (!collaboratorSignature.querySelector('.signed-signature')) {
+        alert('Por favor, firma el contrato antes de enviarlo.');
+        return;
+    }
+    
+    // Mostrar un mensaje de carga (si tienes la función addMessage disponible)
+    if (typeof addMessage === 'function') {
+        addMessage('bot', 'Enviando contrato...');
+    }
+    
+    // Simular un breve tiempo de carga antes de redirigir (1.5 segundos)
+    setTimeout(function() {
+        // Redirigir a la página de confirmación
+        window.location.href = 'confirmacion-documento-firmado.html';
+    }, 1500);
+});
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                    startCameraBtn.disabled = false;
+                    capturePhotoBtn.disabled = true;
+                }
+            }
+            
+            capturePhotoBtn.addEventListener('click', function() {
+                // Crear un canvas para capturar la imagen
+                const canvas = document.createElement('canvas');
+                canvas.width = cameraStream.videoWidth;
+                canvas.height = cameraStream.videoHeight;
+                const ctx = canvas.getContext('2d');
+                
+                // Dibujar la imagen del video en el canvas
+                ctx.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
+                
+                // Convertir a imagen
+                const imageData = canvas.toDataURL('image/png');
+                capturedImage.src = imageData;
+                capturedImage.style.display = 'block';
+                
+                // Guardar la imagen
+                sessionStorage.setItem('capturedDniImage', imageData);
+                
+                // Detener la cámara
+                stopCamera();
+            });
+            
+            // ===== GUARDAR DATOS DEL MODAL =====
+            // ===== GUARDAR DATOS DEL MODAL =====
+saveModalBtn.addEventListener('click', function() {
+    // Verificar qué pestaña está activa
+    const activeTab = document.querySelector('.modal-tab.active').getAttribute('data-tab');
+    
+    let imageToUse = null;
+    
+    if (activeTab === 'signature') {
+        imageToUse = sessionStorage.getItem('signatureImage');
+        if (!imageToUse) {
+            alert('Por favor, dibuja y guarda tu firma antes de continuar.');
+            return;
+        }
+    } else if (activeTab === 'photo') {
+        imageToUse = sessionStorage.getItem('userPhotoImage');
+        if (!imageToUse) {
+            alert('Por favor, sube o toma una foto antes de continuar.');
+            return;
+        }
+    } else if (activeTab === 'camera') {
+        imageToUse = sessionStorage.getItem('capturedDniImage');
+        if (!imageToUse) {
+            alert('Por favor, toma una foto con tu DNI antes de continuar.');
+            return;
+        }
+    }
+    
+    // Aplicar la imagen al contrato
+    const collaboratorSignature = document.getElementById('collaboratorSignature');
+    const signatureImg = document.createElement('img');
+    signatureImg.src = imageToUse;
+    signatureImg.className = 'signed-signature';
+    
+    // Limpiar y añadir la firma
+    collaboratorSignature.innerHTML = '';
+    collaboratorSignature.appendChild(signatureImg);
+    
+    // Cambiar el botón a "Firmado"
+    const signButton = document.getElementById('openSignModal');
+    signButton.textContent = 'Firmado ✓';
+    signButton.style.backgroundColor = '#4CAF50';
+    
+    // Cerrar el modal
+    modal.style.display = 'none';
+    
+    // Detener cámaras
+    stopCamera();
+    stopPhotoCamera();
+    
+    // Informar al usuario
+    addMessage('bot', 'El contrato ha sido firmado digitalmente. Puedes descargarlo o enviarlo cuando estés listo.');
+});
+        });
+    </script>
+</body>
+</html>
