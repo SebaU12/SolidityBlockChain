@@ -129,24 +129,10 @@ app.post('/api/contracts/deploy', async (req, res) => {
         const { empresa1, empresa2, requirements } = req.body;
         
         // Validaciones
-        if (!empresa1 || !empresa2 || !requirements) {
+        if (!empresa1 || !empresa2) {
             return res.status(400).json({
                 error: 'Datos incompletos',
-                message: 'Se requieren empresa1, empresa2 y requirements'
-            });
-        }
-        
-        if (!Array.isArray(requirements) || requirements.length === 0) {
-            return res.status(400).json({
-                error: 'Requerimientos inválidos',
-                message: 'Requirements debe ser un array no vacío'
-            });
-        }
-        
-        if (requirements.length > 50) {
-            return res.status(400).json({
-                error: 'Demasiados requerimientos',
-                message: 'Máximo 50 requerimientos permitidos'
+                message: 'Se requieren empresa1 y empresa2'
             });
         }
         
@@ -166,15 +152,50 @@ app.post('/api/contracts/deploy', async (req, res) => {
             });
         }
         
-        console.log(`📝 Desplegando contrato: ${empresa1} -> ${empresa2}`);
-        console.log(`📋 Requerimientos: ${requirements.length}`);
+        // Siempre usar exactamente este 1 requerimiento fijo
+        const fixedRequirements = [
+            'Subir Repositorio de Código'
+        ];
         
-        const result = await escrowManager.deployContract(empresa1, empresa2, requirements);
+        // Ahora empresa1 es el pagador (Empresa2) y empresa2 es el recibidor (Empresa1)
+        console.log(`📝 Desplegando contrato: ${empresa1} (Pagador) -> ${empresa2} (Recibidor)`);
+        console.log(`📋 Requerimiento: ${fixedRequirements.join(', ')}`);
+        
+        // 1. Desplegar el contrato
+        const deployResult = await escrowManager.deployContract(empresa1, empresa2, fixedRequirements);
+        
+        // 2. Esperar un momento para que la blockchain procese
+        console.log(`⏳ Esperando confirmación del deploy...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 3. Obtener estado inicial del contrato
+        let finalContractInfo;
+        try {
+            finalContractInfo = await escrowManager.getContractInfo(deployResult.contractAddress);
+            console.log(`📊 Contrato creado en estado: ${finalContractInfo.state}`);
+        } catch (error) {
+            console.log(`⚠️ Usando valores por defecto para respuesta`);
+            finalContractInfo = {
+                completedRequirements: 0,
+                totalRequirements: 1,
+                state: 'CREATED',
+                balance: '0.0'
+            };
+        }
         
         res.status(201).json({
             success: true,
-            message: 'Contrato desplegado exitosamente',
-            ...result,
+            message: 'Contrato desplegado exitosamente en estado CREATED',
+            ...deployResult,
+            payerAddress: empresa1,
+            receiverAddress: empresa2,
+            requirements: fixedRequirements,
+            initialProgress: {
+                completedRequirements: finalContractInfo.completedRequirements,
+                totalRequirements: finalContractInfo.totalRequirements,
+                state: finalContractInfo.state,
+                balance: finalContractInfo.balance
+            },
             timestamp: new Date().toISOString()
         });
         
@@ -311,6 +332,125 @@ app.post('/api/contracts/:address/cancel', validateAddress, async (req, res) => 
     }
 });
 
+app.post('/api/contracts/:address/deposit', validateAddress, async (req, res) => {
+    try {
+        const { address } = req.params;
+        const { amount } = req.body;
+        
+        if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+            return res.status(400).json({
+                error: 'Monto inválido',
+                message: 'Se requiere un monto válido mayor a 0'
+            });
+        }
+        
+        console.log(`💰 Depositando ${amount} DEV en contrato: ${address}`);
+        
+        const result = await escrowManager.depositFunds(address, parseFloat(amount));
+        
+        res.json({
+            success: true,
+            message: `Fondos depositados exitosamente. Ahora se pueden completar requerimientos.`,
+            ...result,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error depositando fondos:', error.message);
+        
+        if (error.message.includes('No se pueden depositar fondos en estado actual')) {
+            res.status(400).json({
+                error: 'Estado inválido',
+                message: 'Los fondos solo se pueden depositar cuando el contrato está en estado CREATED'
+            });
+        } else if (error.message.includes('EMPRESA1_PRIVATE_KEY no configurada')) {
+            res.status(500).json({
+                error: 'Configuración incompleta',
+                message: 'La clave privada de Empresa1 no está configurada'
+            });
+        } else {
+            res.status(500).json({
+                error: 'Error depositando fondos',
+                message: error.message
+            });
+        }
+    }
+});
+
+app.post('/api/contracts/:address/start', validateAddress, async (req, res) => {
+    try {
+        const { address } = req.params;
+        
+        console.log(`🚀 Iniciando progreso del contrato: ${address}`);
+        
+        // Verificar balance de Empresa2 primero (ahora es el pagador)
+        const empresa2Balance = await escrowManager.getBalance(process.env.EMPRESA2_ADDRESS);
+        const balanceInEther = parseFloat(empresa2Balance.formatted);
+        
+        console.log(`💰 Balance disponible Empresa2 (Pagador): ${balanceInEther} DEV`);
+        
+        // Calcular monto seguro (dejar 0.01 DEV para gas)
+        const maxSafeAmount = Math.max(0.01, (balanceInEther - 0.01) * 0.8); // 80% del disponible
+        const depositAmount = Math.min(0.05, maxSafeAmount); // Máximo 0.05 DEV
+        
+        if (depositAmount < 0.01) {
+            return res.status(400).json({
+                error: 'Fondos insuficientes',
+                message: `Empresa2 tiene ${balanceInEther} DEV. Se necesita al menos 0.02 DEV (depósito + gas)`
+            });
+        }
+        
+        console.log(`💸 Depositando ${depositAmount} DEV (calculado automáticamente)`);
+        
+        // 1. Depositar fondos usando Empresa2 como pagador
+        const depositResult = await escrowManager.depositFundsFromEmpresa2(address, depositAmount);
+        
+        // 2. Esperar confirmación del depósito (reducido)
+        console.log(`⏳ Esperando confirmación del depósito...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 3. Obtener estado final del contrato
+        const finalContractInfo = await escrowManager.getContractInfo(address);
+        
+        res.json({
+            success: true,
+            message: `Contrato iniciado exitosamente. Depositados ${depositAmount} DEV. Listo para entregable.`,
+            depositedAmount: depositAmount,
+            availableBalance: balanceInEther,
+            completedRequirements: finalContractInfo.completedRequirements,
+            state: finalContractInfo.state,
+            progress: `${finalContractInfo.completedRequirements}/${finalContractInfo.totalRequirements}`,
+            ...depositResult,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Error iniciando contrato:', error.message);
+        
+        if (error.message.includes('No se pueden depositar fondos en estado actual')) {
+            res.status(400).json({
+                error: 'Estado inválido',
+                message: 'El contrato solo puede iniciarse cuando está en estado CREATED'
+            });
+        } else if (error.message.includes('EMPRESA2_PRIVATE_KEY no configurada')) {
+            res.status(500).json({
+                error: 'Configuración incompleta',
+                message: 'La clave privada de Empresa2 no está configurada'
+            });
+        } else if (error.message.includes('missing revert data') || error.message.includes('insufficient funds')) {
+            res.status(400).json({
+                error: 'Fondos insuficientes',
+                message: 'Empresa2 no tiene suficiente balance para depositar fondos. Verifica el balance de la cuenta.'
+            });
+        } else {
+            res.status(500).json({
+                error: 'Error iniciando contrato',
+                message: error.message
+            });
+        }
+    }
+});
+
 // ========================================
 // MANEJO DE ERRORES
 // ========================================
@@ -325,7 +465,9 @@ app.use((req, res) => {
             'POST /api/contracts/deploy',
             'GET /api/contracts/:address',
             'POST /api/contracts/:address/complete/:requirementId',
-            'POST /api/contracts/:address/cancel'
+            'POST /api/contracts/:address/cancel',
+            'POST /api/contracts/:address/deposit',
+            'POST /api/contracts/:address/start'
         ]
     });
 });
@@ -358,6 +500,8 @@ async function startServer() {
             console.log(`   • GET  /api/contracts/:address`);
             console.log(`   • POST /api/contracts/:address/complete/:id`);
             console.log(`   • POST /api/contracts/:address/cancel`);
+            console.log(`   • POST /api/contracts/:address/deposit`);
+            console.log(`   • POST /api/contracts/:address/start`);
             console.log('='.repeat(50));
         });
     } catch (error) {

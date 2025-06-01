@@ -166,6 +166,77 @@ class EscrowManager {
         }
     }
 
+    async completeInitialRequirements(contractAddress, numberOfRequirementsToComplete = 2) {
+        try {
+            console.log(`🏃 Completando primeros ${numberOfRequirementsToComplete} requerimientos automáticamente...`);
+            
+            const contract = new ethers.Contract(contractAddress, this.contractABI, this.arbitroSigner);
+            
+            // Esperar un momento para que la blockchain se sincronice
+            console.log('⏳ Esperando sincronización de blockchain...');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Obtener información del contrato con reintentos
+            let contractInfo;
+            let retries = 3;
+            while (retries > 0) {
+                try {
+                    contractInfo = await contract.getContractInfo();
+                    break;
+                } catch (error) {
+                    console.log(`🔄 Reintentando obtener info del contrato... (${4 - retries}/3)`);
+                    retries--;
+                    if (retries === 0) throw error;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            
+            const totalRequirements = Number(contractInfo[5]);
+            
+            // Calcular cuántos requerimientos completar
+            const toComplete = Math.min(numberOfRequirementsToComplete, totalRequirements - 1);
+            
+            if (toComplete <= 0) {
+                console.log('⚠️ No hay suficientes requerimientos para completar automáticamente');
+                return;
+            }
+            
+            console.log(`📝 Completando ${toComplete} de ${totalRequirements} requerimientos...`);
+            
+            // Completar cada requerimiento con esperas
+            for (let i = 0; i < toComplete; i++) {
+                try {
+                    const requirement = await contract.getRequirement(i);
+                    
+                    if (!requirement.completed) {
+                        console.log(`   ✔️ Completando: "${requirement.description}"`);
+                        
+                        const tx = await contract.completeRequirement(i, {
+                            gasLimit: 200000n
+                        });
+                        
+                        console.log(`   ⏳ Esperando confirmación de requerimiento ${i}...`);
+                        await tx.wait();
+                        console.log(`   ✅ Requerimiento ${i} completado`);
+                        
+                        // Esperar un poco entre requerimientos
+                        if (i < toComplete - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    }
+                } catch (error) {
+                    console.error(`   ❌ Error completando requerimiento ${i}:`, error.message);
+                }
+            }
+            
+            console.log(`🎉 Primeros ${toComplete} requerimientos completados automáticamente`);
+            
+        } catch (error) {
+            console.error('❌ Error completando requerimientos iniciales:', error.message);
+            throw error;
+        }
+    }
+
     async getContractInfo(contractAddress) {
         try {
             // Conectar con el contrato existente
@@ -298,6 +369,105 @@ class EscrowManager {
         } catch (error) {
             console.error('❌ Error cancelando contrato:', error.message);
             throw new Error(`Error cancelando contrato: ${error.message}`);
+        }
+    }
+
+    async depositFunds(contractAddress, amountInEther) {
+        try {
+            if (!this.privateKeys.empresa1) {
+                throw new Error('EMPRESA1_PRIVATE_KEY no configurada en .env');
+            }
+
+            const empresa1Signer = new ethers.Wallet(this.privateKeys.empresa1, this.provider);
+            const contract = new ethers.Contract(contractAddress, this.contractABI, empresa1Signer);
+            
+            const contractInfo = await contract.getContractInfo();
+            const currentState = Number(contractInfo[4]);
+            
+            if (currentState !== 0) {
+                throw new Error(`No se pueden depositar fondos en estado actual: ${currentState}`);
+            }
+            
+            const amountWei = ethers.parseEther(amountInEther.toString());
+            
+            console.log(`💰 Depositando ${amountInEther} DEV en contrato ${contractAddress}`);
+            
+            const gasEstimate = await contract.depositFunds.estimateGas({ value: amountWei });
+            
+            const tx = await contract.depositFunds({
+                value: amountWei,
+                gasLimit: gasEstimate * 110n / 100n
+            });
+            
+            console.log(`⏳ Transacción de depósito enviada: ${tx.hash}`);
+            
+            const receipt = await tx.wait();
+            
+            console.log('✅ Fondos depositados exitosamente. Contrato en estado IN_PROGRESS');
+            
+            return {
+                transactionHash: tx.hash,
+                amountDeposited: amountInEther.toString(),
+                gasUsed: receipt.gasUsed.toString(),
+                blockNumber: receipt.blockNumber,
+                newState: 'IN_PROGRESS'
+            };
+            
+        } catch (error) {
+            console.error('❌ Error depositando fondos:', error.message);
+            throw new Error(`Error depositando fondos: ${error.message}`);
+        }
+    }
+
+    async depositFundsFromEmpresa2(contractAddress, amountInEther) {
+        try {
+            if (!this.privateKeys.empresa2) {
+                throw new Error('EMPRESA2_PRIVATE_KEY no configurada en .env');
+            }
+
+            const empresa2Signer = new ethers.Wallet(this.privateKeys.empresa2, this.provider);
+            const contract = new ethers.Contract(contractAddress, this.contractABI, empresa2Signer);
+            
+            const contractInfo = await contract.getContractInfo();
+            const currentState = Number(contractInfo[4]);
+            
+            if (currentState !== 0) {
+                throw new Error(`No se pueden depositar fondos en estado actual: ${currentState}`);
+            }
+            
+            const amountWei = ethers.parseEther(amountInEther.toString());
+            
+            console.log(`💰 Depositando ${amountInEther} DEV desde Empresa2 en contrato ${contractAddress}`);
+            
+            const gasEstimate = await contract.depositFunds.estimateGas({ value: amountWei });
+            
+            const tx = await contract.depositFunds({
+                value: amountWei,
+                gasLimit: gasEstimate * 110n / 100n
+            });
+            
+            console.log(`⏳ Transacción de depósito enviada: ${tx.hash}`);
+            console.log(`⏳ Esperando confirmación...`);
+            
+            const receipt = await tx.wait();
+            
+            // Esperar un momento adicional para sincronización
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            console.log('✅ Fondos depositados exitosamente desde Empresa2. Contrato en estado IN_PROGRESS');
+            
+            return {
+                transactionHash: tx.hash,
+                amountDeposited: amountInEther.toString(),
+                gasUsed: receipt.gasUsed.toString(),
+                blockNumber: receipt.blockNumber,
+                newState: 'IN_PROGRESS',
+                payer: 'Empresa2'
+            };
+            
+        } catch (error) {
+            console.error('❌ Error depositando fondos desde Empresa2:', error.message);
+            throw new Error(`Error depositando fondos: ${error.message}`);
         }
     }
 
