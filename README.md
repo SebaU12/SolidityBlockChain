@@ -6,6 +6,9 @@
 
 Este proyecto fue desarrollado durante la **hackathon NERD CAMP 2025** organizada por **Polkadot**.
 
+## Aplicación 
+![Video demo](demo.mov)
+
 ---
 
 ## Problema que Resolvemos
